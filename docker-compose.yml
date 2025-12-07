@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  dar-list-parser:
+    build: .
+    container_name: dar-list-parser
+    restart: unless-stopped
+    ports:
+      - "5005:5000"   # external:internal
+    volumes:
+      - ./data:/app/data   # optional, if you later want persistence
