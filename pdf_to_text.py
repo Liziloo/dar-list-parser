@@ -1,11 +1,11 @@
-# pdf_to_text.py
 import sys
 import re
 from pathlib import Path
 
 import fitz  # PyMuPDF
 
-HEADER_PATTERN = re.compile(r"^[A-Z][a-z]+ \d+$")  # e.g. "Maine 23"
+# Matches headers like "Maine 23", "Virginia 509"
+HEADER_PATTERN = re.compile(r"^[A-Z][a-z]+ \d+$")
 
 
 def extract_text(
@@ -14,11 +14,16 @@ def extract_text(
     remove_headers: bool = True,
     merge_hyphens: bool = True,
 ) -> str:
+    """
+    Extract text from a PDF, optionally restricted to specific pages.
+
+    - Removes simple headers like "Maine 23"
+    - Merges hyphenated line breaks by default
+    """
     doc = fitz.open(pdf_path)
     page_indices: list[int]
 
     if pages:
-        # pages string like "36-43" or "10,12,15-17"
         indices: list[int] = []
         for part in pages.split(","):
             part = part.strip()
@@ -46,9 +51,9 @@ def extract_text(
     full_text = "\n".join(lines)
 
     if merge_hyphens:
-        # Merge words split at line breaks, e.g. "Passamaquod-\n dy"
+        # Merge words split at line breaks (e.g. "Passamaquod-\ndy" -> "Passamaquoddy")
         full_text = re.sub(r"-\n(\S)", r"\1", full_text)
-        # Normalize remaining newlines to spaces where appropriate
+        # Normalize multiple blank lines
         full_text = re.sub(r"\n+", "\n", full_text)
 
     return full_text
