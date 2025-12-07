@@ -6,6 +6,8 @@ services:
     container_name: dar-list-parser
     restart: unless-stopped
     ports:
-      - "5005:5000"   # external:internal
+      - "5005:5000"
     volumes:
-      - ./data:/app/data   # optional, if you later want persistence
+      - ./data:/app/data
+    environment:
+      - FLASK_ENV=production
