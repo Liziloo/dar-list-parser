@@ -1,103 +1,81 @@
 # DAR List Parser
 
-![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
-![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Status: Under Active Development](https://img.shields.io/badge/Status-Active-yellow.svg)
+Tools for parsing Revolutionary War–era compiled lists (especially the **DAR Forgotten Patriots** volume) into structured CSV files suitable for genealogical work, including WikiTree and similar projects.
 
-Parsers for transforming DAR *Forgotten Patriots* state lists into structured, pipe-delimited data suitable for genealogical research, digital humanities work, archival record-linkage, and computational analysis.
+This repository currently supports:
 
-This project provides two related parsing systems:
+- A **general DAR-style parser** (`original_parser.py`)
+- A **Virginia-specific parser** (`virginia_parser.py`)
+- A **PDF → text extractor** tuned for DAR pages (`pdf_to_text.py`)
+- A simple **web interface** for non-technical users (`webapp.py`)
+- A basic **OpenRefine import schema** for post-processing
 
-- an **original/general parser** and  
-- a **Virginia-specific parser**, a variant tuned for the formatting quirks of the Virginia section.
-
-Both parsers extract **surname, first name, race, source, and notes** — they just use different rules for how to slice the raw text.
-
----
-
-## 📚 Source Material (DAR Publication)
-
-All parsed material derives from:
-
-**Forgotten Patriots: African American and American Indian Patriots of the Revolutionary War**  
-Daughters of the American Revolution (DAR)  
-
-PDF link (publicly available from DAR):  
-https://www.dar.org/sites/default/files/media/library/DARpublications/Forgotten_Patriots_ISBN-978-1-892237-10-1.pdf
-
-Users should consult the original publication for context, editorial notes, and methodology.
+MIT licensed.
 
 ---
 
-## 🧩 Overview of the Two Parsers
+## Output schema (columns)
 
-### 1. Original / General DAR Parser
+All parsers output the same 9 columns in this order:
 
-This is the parser that was in use **before the Virginia-specific adjustments** and is suitable for lists that follow the more typical DAR state formatting (e.g., the Maine work you’ve been doing).
-
-It implements:
-
-- **Surname extraction**  
-  Text before the first comma in a line is treated as the surname block (including any slash-delimited variants like `ADERTON/ADDITION`).
-
-- **First name extraction**  
-  The first non-race, non-ALL-CAPS token after the surname is treated as the given name block (e.g., `FRANK JOSEPH`, `1st SON`, etc.).
-
-- **Race extraction**  
-  Any phrase indicating race or ethnic/national identity is extracted into a dedicated **Race** column.  
-  Examples (kept verbatim):  
-  - `Maliseet Indian`  
-  - `Micmac Indian/St. Johns Indian`  
-  - `Passamoquoddy Indian`  
-  - `African American`  
-
-- **Source extraction**  
-  ALL-CAPS abbreviations and source codes are grouped into the **Source** column, prefixed with:  
-  `DAR, `  
-  Examples: `MSS`, `SSME`, `MOEM`, `SJ6`, `DHME 14`, `WT76`, `MVBH:371`, etc.
-
-- **Notes extraction**  
-  Everything that is not surname, first_name, race, or ALL-CAPS code is preserved in the **Notes** column:  
-  - residence: `res Machias`  
-  - life details: `married Eunice summer of 1791; died July 7 1843`  
-  - alternate names: `also listed as LYON LONDON`  
-  - `no residence given`  
-  - other free-text editorial hints
-
-- **Output format**  
-  Traditional, comma-delimited .csv file or pipe-delimited (`|`) with no escaping or quoting:
-  ```text
-  surname|first_name|race|source|notes
-
-## 🔧 Installation
-
-To install locally:
-pip install .
-
-For editable development mode:
-pip install -e .
+1. `Wiki-ID of Member Working` — left blank for now (for your project to fill)
+2. `Wiki-ID` — left blank for now
+3. `Surname`
+4. `First Name`
+5. `Race`  
+   - African-descended entries are normalized to `AA`
+   - More detailed race text (e.g. `African American (“a man of colour”)`) is preserved in **Notes** as `Race detail: ...`
+6. `Owner`  
+   - Phrases like `enslaved man of`, `slave of`, `property of`, `hired by`, etc.
+7. `Service`  
+   - Terms like `Soldier`, `Private`, `Pvt`, `Patriotic Service`, `Seaman`, `Drummer`, etc.
+8. `Source`  
+   - Codes like `M881`, `MKM:4:43`, `SFPPV:32`, always prefixed with `DAR, ...`
+9. `Notes`  
+   - Locations (`res. York`, `no residence given`, `1790MD Charles Co.`),
+   - Parenthetical notes,
+   - Race details if collapsed to `AA`,
+   - Anything not clearly race, owner, service, or source.
 
 ---
 
-## 🚀 Usage
+## For genealogists (non-technical users)
 
-### Use the original/general DAR parser
-dar-parse --original input.txt output.psv
+### Easiest: use the web interface
 
-### Use the Virginia-specific parser
-dar-parse --virginia input.txt output.psv
+Your project admin (Liz!) can host this tool on a home server.
 
-### Output Format
+From the genealogist side, you:
 
-All parser outputs are:
+1. Go to the URL Liz gives you (something like `https://<server>/`).
+2. On the page **DAR List Parser**:
+   - Either **upload** a PDF or TXT file,  
+   - OR paste the text of the list into the big text box.
+3. Choose:
+   - **General parser** (most lists like Maine, Maryland, etc.), or  
+   - **Virginia parser** (for the Virginia chapter content).
+4. Choose output format:
+   - Pipe-delimited (`|`) is recommended for use with OpenRefine and Excel.
+5. Click **Process**.
+6. Your browser will download a file called `parsed_output.csv`.
+7. Open that CSV in:
+   - Excel
+   - Google Sheets
+   - LibreOffice
+   - Or import into OpenRefine (see below).
 
-- pipe-delimited (|)
-- unescaped (no quoting)
-- UTF-8 text
+You **do not** need to install Python, Docker, or anything else if the web tool is hosted for you.
 
-Columns produced by both parsers:
-surname | first_name | race | source | notes
+---
 
-These load cleanly into Google Sheets using:
-Data → Split text to columns → Custom delimiter: |
+## For power users: CLI usage
 
+### Requirements
+
+- Python 3.10+  
+- `pip install pymupdf` (for PDF extraction)
+
+You can optionally install Flask if you want to run the web app locally:
+
+```bash
+pip install flask pymupdf
