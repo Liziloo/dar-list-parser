@@ -10,47 +10,326 @@ app = Flask(__name__)
 
 TEMPLATE = """
 <!doctype html>
-<title>DAR List Parser</title>
-<h1>DAR List Parser</h1>
-<p>Upload a PDF or text file, or paste text below. Choose a parser and output format.</p>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Fantasmagorical Wikitree Parser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<form method="post" enctype="multipart/form-data">
-  <fieldset>
-    <legend>Input</legend>
-    <p>
-      <label>PDF or TXT file:
-        <input type="file" name="file">
-      </label>
-    </p>
-    <p>
-      <label>PDF pages (e.g. 36-43, optional):
-        <input type="text" name="pages">
-      </label>
-    </p>
-    <p>OR paste text:</p>
-    <p>
-      <textarea name="pasted" rows="12" cols="80"></textarea>
-    </p>
-  </fieldset>
+    <style>
+      :root {
+        --amber-flame: #fcb815ff;
+        --medium-jungle: #58ab58ff;
+        --prussian-blue: #011936ff;
+        --charcoal-blue: #465362ff;
+        --dark-spruce: #285238ff;
+      }
 
-  <fieldset>
-    <legend>Options</legend>
-    <p>
-      <label><input type="radio" name="parser" value="original" checked> General parser</label>
-      <label><input type="radio" name="parser" value="virginia"> Virginia parser</label>
-    </p>
-    <p>
-      <label><input type="radio" name="format" value="psv" checked> Pipe-delimited (.csv with |)</label>
-      <label><input type="radio" name="format" value="csv"> Comma-delimited (.csv)</label>
-    </p>
-  </fieldset>
+      * {
+        box-sizing: border-box;
+      }
 
-  <p><button type="submit">Process</button></p>
-</form>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     sans-serif;
+        background-color: #ffffff;
+        color: var(--prussian-blue);
+      }
 
-{% if error %}
-  <p style="color:red;">{{ error }}</p>
-{% endif %}
+      .page {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      header {
+        background: linear-gradient(135deg, var(--prussian-blue), var(--dark-spruce));
+        color: #ffffff;
+        padding: 1.75rem 1rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .header-inner {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.9rem;
+        letter-spacing: 0.02em;
+      }
+
+      .tagline {
+        margin-top: 0.4rem;
+        font-size: 0.95rem;
+        color: #f5f5f5;
+      }
+
+      main {
+        flex: 1;
+        padding: 1.5rem 1rem 2.5rem;
+      }
+
+      .content {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        border: 1px solid rgba(1, 25, 54, 0.08);
+        box-shadow: 0 4px 12px rgba(1, 25, 54, 0.05);
+        padding: 1.5rem;
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        color: var(--charcoal-blue);
+      }
+
+      fieldset {
+        border: 1px solid rgba(1, 25, 54, 0.12);
+        border-radius: 8px;
+        margin: 1rem 0;
+        padding: 0.85rem 1rem 1rem;
+      }
+
+      legend {
+        padding: 0 0.4rem;
+        color: var(--dark-spruce);
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      label {
+        font-size: 0.9rem;
+        color: var(--charcoal-blue);
+      }
+
+      input[type="file"],
+      input[type="text"],
+      textarea,
+      select {
+        width: 100%;
+        padding: 0.45rem 0.6rem;
+        margin-top: 0.25rem;
+        border-radius: 6px;
+        border: 1px solid rgba(1, 25, 54, 0.25);
+        font-size: 0.9rem;
+        font-family: inherit;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 9rem;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: rgba(70, 83, 98, 0.9);
+        margin-top: 0.1rem;
+      }
+
+      .option-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin: 0.5rem 0;
+      }
+
+      .option-group {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.9rem;
+      }
+
+      button[type="submit"] {
+        margin-top: 1.2rem;
+        padding: 0.55rem 1.4rem;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        background: var(--amber-flame);
+        color: #111111;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 6px rgba(252, 184, 21, 0.5);
+        transition: transform 0.05s ease-out, box-shadow 0.05s ease-out,
+                    background-color 0.15s ease-out;
+      }
+
+      button[type="submit"]:hover {
+        background-color: #ffcb4a;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(252, 184, 21, 0.55);
+      }
+
+      button[type="submit"]:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 3px rgba(252, 184, 21, 0.4);
+      }
+
+      .error {
+        margin-top: 1rem;
+        padding: 0.75rem 0.85rem;
+        border-radius: 8px;
+        background-color: rgba(252, 184, 21, 0.12);
+        border: 1px solid rgba(252, 184, 21, 0.8);
+        color: #5c3a00;
+        font-size: 0.9rem;
+      }
+
+      .helper-text {
+        font-size: 0.85rem;
+        color: rgba(70, 83, 98, 0.95);
+        margin-top: 0.4rem;
+      }
+
+      footer {
+        border-top: 1px solid rgba(1, 25, 54, 0.06);
+        padding: 0.8rem 1rem 1.1rem;
+        background-color: #fafbfc;
+      }
+
+      .footer-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        font-size: 0.8rem;
+        color: rgba(70, 83, 98, 0.9);
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .footer-inner a {
+        color: var(--medium-jungle);
+        text-decoration: none;
+      }
+
+      .footer-inner a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 640px) {
+        header {
+          padding: 1.25rem 1rem;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+        main {
+          padding: 1rem;
+        }
+        .card {
+          padding: 1.1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <div class="header-inner">
+          <h1>Liz’s Fantasmagorical Wikitree Record Parser</h1>
+          <div class="tagline">Because life is too short for inconsistent muster rolls.</div>
+        </div>
+      </header>
+
+      <main>
+        <div class="content">
+          <div class="card">
+            <h2>Ingest a historical list and get a structured CSV</h2>
+            <p class="helper-text">
+              Upload a DAR-style PDF or text file, or paste a list directly. Choose the parser
+              that matches your source, then download a CSV ready for WikiTree, OpenRefine,
+              or your spreadsheet of choice.
+            </p>
+
+            <form method="post" enctype="multipart/form-data">
+              <fieldset>
+                <legend>Input</legend>
+                <p>
+                  <label>PDF or TXT file:
+                    <input type="file" name="file" />
+                  </label>
+                  <div class="hint">For DAR Forgotten Patriots or similar compiled lists.</div>
+                </p>
+
+                <p>
+                  <label>PDF pages (e.g. 36-43, optional):
+                    <input type="text" name="pages" placeholder="36-43" />
+                  </label>
+                  <div class="hint">Leave blank to process all pages of the uploaded PDF.</div>
+                </p>
+
+                <p>
+                  <label>Or paste list text:
+                    <textarea name="pasted" placeholder="Paste a list such as 'CARNEY, THOMAS, African American, Soldier, …'"></textarea>
+                  </label>
+                  <div class="hint">If both file and pasted text are provided, the uploaded file will be used.</div>
+                </p>
+              </fieldset>
+
+              <fieldset>
+                <legend>Options</legend>
+
+                <p><strong>Parser:</strong></p>
+                <div class="option-row">
+                  <label class="option-group">
+                    <input type="radio" name="parser" value="original" checked />
+                    <span>General DAR-style parser</span>
+                  </label>
+                  <label class="option-group">
+                    <input type="radio" name="parser" value="virginia" />
+                    <span>Virginia-specific parser</span>
+                  </label>
+                </div>
+
+                <p><strong>Output format:</strong></p>
+                <div class="option-row">
+                  <label class="option-group">
+                    <input type="radio" name="format" value="psv" checked />
+                    <span>Pipe-delimited (.csv with <code>|</code>)</span>
+                  </label>
+                  <label class="option-group">
+                    <input type="radio" name="format" value="csv" />
+                    <span>Comma-delimited (.csv)</span>
+                  </label>
+                </div>
+
+                <p class="helper-text">
+                  Pipe-delimited CSV is often safer when your sources and notes contain commas.
+                </p>
+              </fieldset>
+
+              <button type="submit">Parse record list</button>
+            </form>
+
+            {% if error %}
+              <div class="error">
+                {{ error }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <div class="footer-inner">
+          <div>Liz’s Fantasmagorical Wikitree Record Parser</div>
+          <div>Running on your friendly neighborhood homelab.</div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
 """
 
 @app.route("/", methods=["GET", "POST"])
