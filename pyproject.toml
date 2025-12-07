@@ -1,0 +1,10 @@
+[project]
+name = "dar-list-parser"
+version = "0.1.0"
+description = "Parsers for DAR Forgotten Patriots lists (Maine, Virginia, etc.)"
+authors = [{ name = "Liz" }]
+requires-python = ">=3.8"
+dependencies = []
+
+[project.scripts]
+dar-parse = "darlistparser.cli:main"
