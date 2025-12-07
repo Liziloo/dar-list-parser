@@ -1,0 +1,23 @@
+{
+  "encoding": "UTF-8",
+  "separator": "|",
+  "ignoreLines": -1,
+  "headerLines": 1,
+  "skipDataLines": 0,
+  "limit": -1,
+  "guessCellValueTypes": false,
+  "storeBlankCellsAsNulls": true,
+  "storeBlankRows": true,
+  "trimStrings": true,
+  "projectName": "DAR Parsed Data",
+  "columns": [
+    { "name": "Wiki-ID of Member Working" },
+    { "name": "Wiki-ID" },
+    { "name": "Surname" },
+    { "name": "First Name" },
+    { "name": "Race" },
+    { "name": "Owner" },
+    { "name": "Source" },
+    { "name": "Notes" }
+  ]
+}
