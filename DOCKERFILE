@@ -1,12 +1,11 @@
-# Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# System deps if needed later (for now, pretty minimal)
+# Install system and Python dependencies
 RUN pip install --no-cache-dir flask pymupdf
 
-COPY original_parser.py virginia_parser.py pdf_to_text.py webapp.py ./
+COPY original_parser.py virginia_parser.py pdf_to_text.py webapp.py LICENSE README.md ./
 
 EXPOSE 5000
 
