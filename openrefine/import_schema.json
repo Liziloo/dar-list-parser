@@ -17,6 +17,7 @@
     { "name": "First Name" },
     { "name": "Race" },
     { "name": "Owner" },
+    { "name": "Service" },
     { "name": "Source" },
     { "name": "Notes" }
   ]
