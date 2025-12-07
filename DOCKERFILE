@@ -2,10 +2,9 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system and Python dependencies
 RUN pip install --no-cache-dir flask pymupdf
 
-COPY original_parser.py virginia_parser.py pdf_to_text.py webapp.py LICENSE README.md ./
+COPY . .
 
 EXPOSE 5000
 
